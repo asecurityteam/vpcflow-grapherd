@@ -8,6 +8,10 @@
   version = "v3.3.3"
 
 [[constraint]]
+  name = "github.com/google/uuid"
+  version = "v1.0.0"
+
+[[constraint]]
   name = "bitbucket.org/atlassian/logevent"
   version = "^1.0.2"
 

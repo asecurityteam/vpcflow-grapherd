@@ -26,6 +26,18 @@ type Service struct {
 	// Middleware is a list of service middleware to install on the router.
 	// The set of prepackaged middleware can be found in pkg/plugins.
 	Middleware []func(http.Handler) http.Handler
+
+	// Queuer is responsible for queuing graphing jobs which will eventually be consumed
+	// by the Produce handler. The built in Queuer POSTs to an HTTP endpoint.
+	Queuer types.Queuer
+
+	// Storage provides a mechanism to hook into a persistent store for the digests. The
+	// built in Storage uses S3 as the persistent storage for digest blobs.
+	Storage types.Storage
+
+	// Marker is responsible for marking which digests jobs are inprogress. The built in
+	// Marker uses S3 to hold this state.
+	Marker types.Marker
 }
 
 func (s *Service) init() error {
