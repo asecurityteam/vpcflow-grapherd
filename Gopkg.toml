@@ -1,0 +1,20 @@
+# Gopkg.toml example
+#
+# Refer to https://golang.github.io/dep/docs/Gopkg.toml.html
+# for detailed Gopkg.toml documentation.
+
+[[constraint]]
+  name = "github.com/go-chi/chi"
+  version = "v3.3.3"
+
+[[constraint]]
+  name = "bitbucket.org/atlassian/logevent"
+  version = "^1.0.2"
+
+[[constraint]]
+  name = "github.com/rs/xstats"
+  branch = "master"
+
+[prune]
+  go-tests = true
+  unused-packages = true
