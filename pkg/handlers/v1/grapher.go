@@ -47,7 +47,9 @@ func (h *GrapherHandler) Post(w http.ResponseWriter, r *http.Request) {
 	}
 	// if data is returned, a graph already exists. return 409 and exit
 	if exists {
-		msg := fmt.Sprintf("graph %s already exists", id)
+		startStr := start.Format(time.RFC3339)
+		stopStr := start.Format(time.RFC3339)
+		msg := fmt.Sprintf("graph for the time %s to %s already exists", startStr, stopStr)
 		logger.Info(logs.Conflict{Reason: msg})
 		writeJSONResponse(w, http.StatusConflict, msg)
 		return
@@ -68,9 +70,10 @@ func (h *GrapherHandler) Post(w http.ResponseWriter, r *http.Request) {
 }
 
 // extractInput attempts to extract the start/stop query parameters required by GET and POST.
-// If either value is not a valid RFC3339Nano, an error is returned. Otherwise, start and stop
-// times are returned in the respective order. Additionally, it truncates the time values to the
-// nearest minute since anything with more precision doesn't really fit the vpc flow filter use case
+// If either value is not a valid RFC3339Nano or the input is invalid, an error is returned.
+// Otherwise, start and stop times are returned in the respective order. Additionally, it
+// truncates the time values to the nearest minute since anything with more precision doesn't
+// really fit the vpc flow filter use case
 func extractInput(r *http.Request) (time.Time, time.Time, error) {
 	startString := r.URL.Query().Get("start")
 	stopString := r.URL.Query().Get("stop")
