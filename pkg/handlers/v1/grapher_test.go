@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"io/ioutil"
@@ -34,6 +35,19 @@ func (m *timeMatcher) String() string {
 	return "matches two time.Time instances based on the evaluation of time.Equal()"
 }
 
+func newHandlerFunc(storage types.Storage, queuer types.Queuer, method string) http.HandlerFunc {
+	handler := &GrapherHandler{
+		LogProvider:  logevent.FromContext,
+		StatProvider: xstats.FromContext,
+		Storage:      storage,
+		Queuer:       queuer,
+	}
+	if method == http.MethodGet {
+		return handler.Get
+	}
+	return handler.Post
+}
+
 func TestHTTPBadRequest(t *testing.T) {
 	tc := []struct {
 		Name   string
@@ -41,6 +55,24 @@ func TestHTTPBadRequest(t *testing.T) {
 		Stop   string
 		Method string
 	}{
+		{
+			Name:   "GET_bad_start",
+			Start:  "invalid ts",
+			Stop:   time.Now().Format(time.RFC3339Nano),
+			Method: http.MethodGet,
+		},
+		{
+			Name:   "GET_bad_stop",
+			Start:  time.Now().Format(time.RFC3339Nano),
+			Stop:   "invalid ts",
+			Method: http.MethodGet,
+		},
+		{
+			Name:   "GET_bad_range",
+			Start:  time.Now().Format(time.RFC3339Nano),
+			Stop:   time.Now().Add(-1 * time.Minute).Format(time.RFC3339Nano),
+			Method: http.MethodGet,
+		},
 		{
 			Name:   "POST_bad_start",
 			Start:  "invalid ts",
@@ -72,15 +104,102 @@ func TestHTTPBadRequest(t *testing.T) {
 			r.URL.RawQuery = q.Encode()
 			r = r.WithContext(logevent.NewContext(context.Background(), logevent.New(logevent.Config{Output: ioutil.Discard})))
 
-			h := &GrapherHandler{
-				LogProvider:  logevent.FromContext,
-				StatProvider: xstats.FromContext,
-			}
-			h.Post(w, r)
+			newHandlerFunc(nil, nil, tt.Method)(w, r)
 
 			assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 		})
 	}
+}
+
+func TestGetStorageErrors(t *testing.T) {
+	tc := []struct {
+		Name               string
+		Error              error
+		ExpectedStatusCode int
+	}{
+		{
+			Name:               "GET_in_progress",
+			Error:              types.ErrInProgress{},
+			ExpectedStatusCode: http.StatusNoContent,
+		},
+		{
+			Name:               "GET_not_found",
+			Error:              types.ErrNotFound{},
+			ExpectedStatusCode: http.StatusNotFound,
+		},
+		{
+			Name:               "GET_unknown",
+			Error:              errors.New("oops"),
+			ExpectedStatusCode: http.StatusInternalServerError,
+		},
+	}
+
+	for _, tt := range tc {
+		t.Run(tt.Name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			start := time.Now().Add(-1 * time.Minute).Format(time.RFC3339Nano)
+			stop := time.Now().Format(time.RFC3339Nano)
+			r, _ := http.NewRequest(http.MethodGet, "/", nil)
+			w := httptest.NewRecorder()
+
+			q := r.URL.Query()
+			q.Set("start", start)
+			q.Set("stop", stop)
+			r.URL.RawQuery = q.Encode()
+			r = r.WithContext(logevent.NewContext(context.Background(), logevent.New(logevent.Config{Output: ioutil.Discard})))
+
+			storageMock := NewMockStorage(ctrl)
+			storageMock.EXPECT().Get(gomock.Any(), gomock.Any()).Return(nil, tt.Error)
+
+			h := GrapherHandler{
+				LogProvider:  logevent.FromContext,
+				StatProvider: xstats.FromContext,
+				Storage:      storageMock,
+			}
+			h.Get(w, r)
+
+			assert.Equal(t, tt.ExpectedStatusCode, w.Result().StatusCode)
+		})
+	}
+}
+
+func TestGetHappyPath(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	start := time.Now().Format(time.RFC3339Nano)
+	stop := time.Now().Format(time.RFC3339Nano)
+	r, _ := http.NewRequest(http.MethodGet, "/", nil)
+	w := httptest.NewRecorder()
+
+	q := r.URL.Query()
+	q.Set("start", start)
+	q.Set("stop", stop)
+	r.URL.RawQuery = q.Encode()
+	r = r.WithContext(logevent.NewContext(context.Background(), logevent.New(logevent.Config{Output: ioutil.Discard})))
+
+	data := "this is the graph you're looking for"
+	readCloser := ioutil.NopCloser(bytes.NewReader([]byte(data)))
+
+	storageMock := NewMockStorage(ctrl)
+	storageMock.EXPECT().Get(gomock.Any(), gomock.Any()).Return(readCloser, nil)
+
+	h := GrapherHandler{
+		LogProvider:  logevent.FromContext,
+		StatProvider: xstats.FromContext,
+		Storage:      storageMock,
+	}
+	h.Get(w, r)
+
+	assert.Equal(t, http.StatusOK, w.Result().StatusCode)
+
+	body := w.Result().Body
+	defer body.Close()
+
+	result, _ := ioutil.ReadAll(body)
+	assert.Equal(t, data, string(result))
 }
 
 func TestPostConflictInProgress(t *testing.T) {

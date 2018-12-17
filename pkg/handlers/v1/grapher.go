@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -67,6 +68,38 @@ func (h *GrapherHandler) Post(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusAccepted)
+}
+
+// Get retrieves a graph
+func (h *GrapherHandler) Get(w http.ResponseWriter, r *http.Request) {
+	logger := h.LogProvider(r.Context())
+	start, stop, err := extractInput(r)
+	if err != nil {
+		logger.Info(logs.InvalidInput{Reason: err.Error()})
+		writeJSONResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	id := computeID(start, stop)
+	body, err := h.Storage.Get(r.Context(), id)
+	switch err.(type) {
+	case nil:
+		defer body.Close()
+	case types.ErrInProgress:
+		w.WriteHeader(http.StatusNoContent)
+		return
+	case types.ErrNotFound:
+		logger.Info(logs.NotFound{Reason: err.Error()})
+		w.WriteHeader(http.StatusNotFound)
+		return
+	default:
+		logger.Error(logs.DependencyFailure{Dependency: logs.DependencyStorage, Reason: err.Error()})
+		writeJSONResponse(w, http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/octet-stream")
+	w.WriteHeader(http.StatusOK)
+	_, _ = io.Copy(w, body)
 }
 
 // extractInput attempts to extract the start/stop query parameters required by GET and POST.
