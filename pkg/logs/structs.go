@@ -9,6 +9,12 @@ const (
 
 	// DependencyMarker identifies a marker failure
 	DependencyMarker = "marker"
+
+	// DependencyDigester identifies a digester failure
+	DependencyDigester = "digester"
+
+	// DependencyGrapher identifies a grapher failure
+	DependencyGrapher = "grapher"
 )
 
 // DependencyFailure is logged when a downstream dependency fails
