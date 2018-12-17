@@ -1,0 +1,54 @@
+swagger: "2.0"
+info:
+  description: "VPC Flow Log Graphing API."
+  version: "1.0.0"
+  title: "VPC Grapher"
+basePath: "/"
+schemes:
+  - "https"
+produces:
+  - "application/octet-stream"
+paths:
+  /:
+    post:
+      summary: "Generate a graph."
+      parameters:
+        - name: "start"
+          in: "query"
+          description: "The start time of the graph."
+          required: true
+          type: "string"
+          format: "date-time"
+        - name: "stop"
+          in: "query"
+          description: "The stop time of the graph."
+          required: true
+          type: "string"
+          format: "date-time"
+      responses:
+        409:
+          description: "The graph for this range already exists."
+        202:
+          description: "The graph will be created."
+    get:
+      summary: "Fetch a complete graph."
+      parameters:
+        - name: "start"
+          in: "query"
+          description: "The start time of the graph."
+          required: true
+          type: "string"
+          format: "date-time"
+        - name: "stop"
+          in: "query"
+          description: "The stop time of the graph."
+          required: true
+          type: "string"
+          format: "date-time"
+      responses:
+        404:
+          description: "The graph for this range does not exist yet."
+        204:
+          description: "The graph is created but not yet complete."
+        200:
+          description: "Success."
