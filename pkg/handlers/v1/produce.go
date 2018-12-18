@@ -68,6 +68,7 @@ func (h *Produce) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		writeTextResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+	defer digest.Close()
 
 	if err := h.Grapher.Graph(r.Context(), body.ID, digest); err != nil {
 		logger.Error(logs.DependencyFailure{Dependency: logs.DependencyGrapher, Reason: err.Error()})

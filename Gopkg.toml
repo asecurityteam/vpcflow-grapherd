@@ -23,6 +23,10 @@
   name = "github.com/rs/xstats"
   branch = "master"
 
+[[constraint]]
+  name = "bitbucket.org/atlassian/go-vpcflow"
+  branch = "master"
+
 [prune]
   go-tests = true
   unused-packages = true
