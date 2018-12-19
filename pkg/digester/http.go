@@ -28,7 +28,7 @@ type HTTP struct {
 // Digest starts a new digest job, and waits for its completion. On successful completion, Digest will return the
 // digested content.
 func (c *HTTP) Digest(ctx context.Context, start, stop time.Time) (io.ReadCloser, error) {
-	req, err := newDigestRequest(*c.Endpoint, http.MethodPost, start, stop)
+	req, err := newDigestRequest(c.Endpoint, http.MethodPost, start, stop)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func (c *HTTP) Digest(ctx context.Context, start, stop time.Time) (io.ReadCloser
 }
 
 func (c *HTTP) waitForDigest(ctx context.Context, start, stop time.Time) (io.ReadCloser, error) {
-	req, err := newDigestRequest(*c.Endpoint, http.MethodGet, start, stop)
+	req, err := newDigestRequest(c.Endpoint, http.MethodGet, start, stop)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +87,8 @@ func extractDigest(r io.Reader) (io.ReadCloser, error) {
 	return ioutil.NopCloser(bytes.NewReader(data)), nil
 }
 
-func newDigestRequest(u url.URL, method string, start, stop time.Time) (*http.Request, error) {
+func newDigestRequest(endpoint *url.URL, method string, start, stop time.Time) (*http.Request, error) {
+	u, _ := url.Parse(endpoint.String())
 	q := u.Query()
 	q.Set(queryStart, start.Format(time.RFC3339Nano))
 	q.Set(queryStop, stop.Format(time.RFC3339Nano))
