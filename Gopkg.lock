@@ -2,6 +2,14 @@
 
 
 [[projects]]
+  branch = "master"
+  digest = "1:57762f709e5abf8b6b88add87b800cff3a1f34c7e48cdceec211908c1056a2ef"
+  name = "bitbucket.org/atlassian/go-vpcflow"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "9d1e932f3787f82f9eaead3005f1882e02fbd4c6"
+
+[[projects]]
   digest = "1:fc7ac93c8a978bd4ccbe0c85fdca0e7723d72be1f76feb2b162b970ae6276aa2"
   name = "bitbucket.org/atlassian/logevent"
   packages = [
@@ -149,10 +157,18 @@
   pruneopts = "UT"
   revision = "e147a9138326bc0e9d4e179541ffd8af41cff8a9"
 
+[[projects]]
+  digest = "1:a2bfab4bf4324c6b55e559e5585ae267c961d009d8eb1ff7f60038b322907e75"
+  name = "gonum.org/v1/gonum"
+  packages = ["graph/formats/dot/ast"]
+  pruneopts = "UT"
+  revision = "572d9101fe4fdede494f26999a59d09229b7c11b"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "bitbucket.org/atlassian/go-vpcflow",
     "bitbucket.org/atlassian/logevent",
     "bitbucket.org/atlassian/logevent/http",
     "github.com/aws/aws-sdk-go/aws",
