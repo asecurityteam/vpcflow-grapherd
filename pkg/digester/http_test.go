@@ -17,8 +17,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const pollAttempts = 3
-
 func TestPOSTRequstError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -85,23 +83,10 @@ func TestDigestContextCancelled(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-func TestDigestRetriesExceeded(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	mockRT := NewMockRoundTripper(ctrl)
-	resps := make([]response, pollAttempts)
-	for i := 0; i < pollAttempts; i++ {
-		resps[i] = response{statusCode: 204}
-	}
-	setClientExpectations(mockRT, http.MethodPost, nil, response{statusCode: 409})
-	setClientExpectations(mockRT, http.MethodGet, nil, resps...)
-	_, err := execute(context.Background(), mockRT)
-	assert.NotNil(t, err)
-}
-
 func TestDigestRetriesSuceeded(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+	pollAttempts := 3
 	body := "this is another digest"
 	mockRT := NewMockRoundTripper(ctrl)
 	resps := make([]response, pollAttempts)
@@ -125,7 +110,7 @@ func execute(ctx context.Context, rt http.RoundTripper) (io.ReadCloser, error) {
 	c := HTTP{
 		Endpoint:        u,
 		Client:          &http.Client{Transport: rt},
-		PollAttempts:    pollAttempts,
+		PollTimeout:     time.Minute,
 		PollingInterval: time.Duration(-1),
 	}
 	return c.Digest(ctx, start, stop)

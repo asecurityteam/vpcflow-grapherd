@@ -21,7 +21,7 @@ const (
 type HTTP struct {
 	Client          *http.Client
 	Endpoint        *url.URL
-	PollAttempts    int
+	PollTimeout     time.Duration
 	PollingInterval time.Duration
 }
 
@@ -43,8 +43,9 @@ func (c *HTTP) Digest(ctx context.Context, start, stop time.Time) (io.ReadCloser
 		data, _ := ioutil.ReadAll(res.Body)
 		return nil, fmt.Errorf("Received unexpected response from digester %d: %s", res.StatusCode, data)
 	}
-
-	return c.waitForDigest(ctx, start, stop)
+	pollingCtx, cancel := context.WithTimeout(ctx, c.PollTimeout)
+	defer cancel()
+	return c.waitForDigest(pollingCtx, start, stop)
 }
 
 func (c *HTTP) waitForDigest(ctx context.Context, start, stop time.Time) (io.ReadCloser, error) {
@@ -52,7 +53,9 @@ func (c *HTTP) waitForDigest(ctx context.Context, start, stop time.Time) (io.Rea
 	if err != nil {
 		return nil, err
 	}
-	for attempts := 1; attempts <= c.PollAttempts; attempts++ {
+	var attempts int
+	for {
+		attempts++
 		res, err := c.Client.Do(req.WithContext(ctx))
 		if err != nil {
 			return nil, err
@@ -71,7 +74,6 @@ func (c *HTTP) waitForDigest(ctx context.Context, start, stop time.Time) (io.Rea
 		case <-time.After(c.PollingInterval):
 		}
 	}
-	return nil, fmt.Errorf("Max digester poll attempts reached: %d", c.PollAttempts)
 }
 
 func extractDigest(r io.Reader) (io.ReadCloser, error) {
