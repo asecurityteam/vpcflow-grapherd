@@ -27,6 +27,10 @@
   name = "bitbucket.org/atlassian/go-vpcflow"
   branch = "master"
 
+[[constraint]]
+  name = "bitbucket.org/atlassian/transport"
+  version = "1.1.0"
+
 [prune]
   go-tests = true
   unused-packages = true

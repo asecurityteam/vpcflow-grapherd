@@ -21,7 +21,15 @@
   version = "1.0.2"
 
 [[projects]]
-  digest = "1:5f156e0f8da27a70e3a2af9dcd26afe1ae455000f73e0a980da1f5efae832e5b"
+  digest = "1:f5f53e15dfd7a1609de60298c1809576472adb76ce65f7a0849fafd244b2f232"
+  name = "bitbucket.org/atlassian/transport"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "4d788ab0e2375a78205f463a54f446a6be4a934c"
+  version = "1.1.0"
+
+[[projects]]
+  digest = "1:60983e991d2fa116cdea847aa5d116d17dfd9c48c5202bedd19cdf7a70ec9281"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -29,14 +37,24 @@
     "aws/awsutil",
     "aws/client",
     "aws/client/metadata",
+    "aws/corehandlers",
     "aws/credentials",
+    "aws/credentials/ec2rolecreds",
+    "aws/credentials/endpointcreds",
+    "aws/credentials/processcreds",
+    "aws/credentials/stscreds",
+    "aws/csm",
+    "aws/defaults",
+    "aws/ec2metadata",
     "aws/endpoints",
     "aws/request",
+    "aws/session",
     "aws/signer/v4",
     "internal/ini",
     "internal/s3err",
     "internal/sdkio",
     "internal/sdkrand",
+    "internal/sdkuri",
     "internal/shareddefaults",
     "private/protocol",
     "private/protocol/eventstream",
@@ -50,10 +68,11 @@
     "service/s3/s3iface",
     "service/s3/s3manager",
     "service/s3/s3manager/s3manageriface",
+    "service/sts",
   ]
   pruneopts = "UT"
-  revision = "8d41be8a37391ddc4feb2d16f5ca6f440eb8b356"
-  version = "v1.16.8"
+  revision = "cae66ecf52e0171f937f1fa80e12130fbb652474"
+  version = "v1.16.9"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -171,9 +190,12 @@
     "bitbucket.org/atlassian/go-vpcflow",
     "bitbucket.org/atlassian/logevent",
     "bitbucket.org/atlassian/logevent/http",
+    "bitbucket.org/atlassian/transport",
     "github.com/aws/aws-sdk-go/aws",
     "github.com/aws/aws-sdk-go/aws/awserr",
+    "github.com/aws/aws-sdk-go/aws/credentials",
     "github.com/aws/aws-sdk-go/aws/request",
+    "github.com/aws/aws-sdk-go/aws/session",
     "github.com/aws/aws-sdk-go/service/s3",
     "github.com/aws/aws-sdk-go/service/s3/s3iface",
     "github.com/aws/aws-sdk-go/service/s3/s3manager",
