@@ -11,6 +11,7 @@ import (
 
 	"bitbucket.org/atlassian/go-vpcflow"
 	"bitbucket.org/atlassian/logevent"
+	"bitbucket.org/atlassian/transport"
 	"bitbucket.org/atlassian/vpcflow-grapherd/pkg/digester"
 	"bitbucket.org/atlassian/vpcflow-grapherd/pkg/grapher"
 	"bitbucket.org/atlassian/vpcflow-grapherd/pkg/handlers/v1"
@@ -38,9 +39,13 @@ type Server interface {
 
 // Service is a container for all of the pluggable modules used by the service
 type Service struct {
-	// HTTPClientFactory returns a new http.Client to be used in this service. If no factory
-	// is provided, the default std lib http.Client will be used.
-	HTTPClientFactory func() *http.Client
+	// QueuerHTTPClient is the client to be used with the default Queuer module.
+	// If no client is provided, the default client will be used.
+	QueuerHTTPClient *http.Client
+
+	// DigesterHTTPClient is the client to be used with the default Digester module.
+	// If no client is provided, the default client will be used.
+	DigesterHTTPClient *http.Client
 
 	// Middleware is a list of service middleware to install on the router.
 	// The set of prepackaged middleware can be found in pkg/plugins.
@@ -74,18 +79,17 @@ func (s *Service) init() error {
 		return err
 	}
 
-	if s.HTTPClientFactory == nil {
-		s.HTTPClientFactory = func() *http.Client { return &http.Client{} }
-	}
-
 	if s.Queuer == nil {
 		streamApplianceEndpoint := mustEnv("STREAM_APPLIANCE_ENDPOINT")
 		streamApplianceURL, err := url.Parse(streamApplianceEndpoint)
 		if err != nil {
 			return err
 		}
+		if s.QueuerHTTPClient == nil {
+			s.QueuerHTTPClient = defaultHTTPClient()
+		}
 		s.Queuer = &queuer.GraphQueuer{
-			Client:   s.HTTPClientFactory(),
+			Client:   s.QueuerHTTPClient,
 			Endpoint: streamApplianceURL,
 		}
 	}
@@ -121,8 +125,11 @@ func (s *Service) init() error {
 		if err != nil {
 			return err
 		}
+		if s.DigesterHTTPClient == nil {
+			s.DigesterHTTPClient = defaultHTTPClient()
+		}
 		s.Digester = &digester.HTTP{
-			Client:          s.HTTPClientFactory(),
+			Client:          s.DigesterHTTPClient,
 			Endpoint:        digesterURL,
 			PollTimeout:     time.Duration(durationMs) * time.Millisecond,
 			PollingInterval: time.Duration(intervalMs) * time.Millisecond,
@@ -219,4 +226,23 @@ func createS3Client(region string) (*s3.S3, error) {
 		return nil, err
 	}
 	return s3.New(awsSession), nil
+}
+
+func defaultHTTPClient() *http.Client {
+	retrier := transport.NewRetrier(
+		transport.NewFixedBackoffPolicy(50*time.Millisecond),
+		transport.NewLimitedRetryPolicy(3),
+		transport.NewStatusCodeRetryPolicy(500, 502, 503),
+	)
+	base := transport.NewFactory(
+		transport.OptionDefaultTransport,
+		transport.OptionTLSHandshakeTimeout(time.Second),
+		transport.OptionMaxIdleConns(100),
+	)
+	recycler := transport.NewRecycler(
+		transport.Chain{retrier}.ApplyFactory(base),
+		transport.RecycleOptionTTL(10*time.Minute),
+		transport.RecycleOptionTTLJitter(time.Minute),
+	)
+	return &http.Client{Transport: recycler}
 }

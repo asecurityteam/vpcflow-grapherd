@@ -17,8 +17,7 @@ func main() {
 		plugins.DefaultStatMiddleware(),
 	}
 	service := &grapherd.Service{
-		HTTPClientFactory: plugins.HTTPClientProvider,
-		Middleware:        middleware,
+		Middleware: middleware,
 	}
 	if err := service.BindRoutes(router); err != nil {
 		panic(err.Error())
