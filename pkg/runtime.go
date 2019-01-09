@@ -95,7 +95,7 @@ func (s *Service) init() error {
 	}
 	if s.Storage == nil {
 		s.Storage = &storage.InProgress{
-			Bucket: mustEnv("DIGEST_PROGRESS_BUCKET"),
+			Bucket: mustEnv("GRAPH_PROGRESS_BUCKET"),
 			Client: progressClient,
 			Storage: &storage.S3{
 				Bucket: mustEnv("GRAPH_STORAGE_BUCKET"),
