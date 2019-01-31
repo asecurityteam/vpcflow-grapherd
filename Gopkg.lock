@@ -3,11 +3,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:57762f709e5abf8b6b88add87b800cff3a1f34c7e48cdceec211908c1056a2ef"
+  digest = "1:c4a88f2c15c14553320639d68c94291487303d72ecec9d1454e4468b665f2d42"
   name = "bitbucket.org/atlassian/go-vpcflow"
   packages = ["."]
   pruneopts = "UT"
-  revision = "9d1e932f3787f82f9eaead3005f1882e02fbd4c6"
+  revision = "5d1ae1604a53fdec51f88776000eb0e0e7f154ac"
 
 [[projects]]
   digest = "1:fc7ac93c8a978bd4ccbe0c85fdca0e7723d72be1f76feb2b162b970ae6276aa2"
@@ -21,15 +21,15 @@
   version = "1.0.2"
 
 [[projects]]
-  digest = "1:f5f53e15dfd7a1609de60298c1809576472adb76ce65f7a0849fafd244b2f232"
+  digest = "1:971024ef1a764461d2cb20cf5a115fa6f72a3982f3499ff28d9b8e83ba337159"
   name = "bitbucket.org/atlassian/transport"
   packages = ["."]
   pruneopts = "UT"
-  revision = "4d788ab0e2375a78205f463a54f446a6be4a934c"
-  version = "1.1.0"
+  revision = "09aeb930fafb2a2bd96b500adf4981d23844b6d1"
+  version = "1.1.1"
 
 [[projects]]
-  digest = "1:60983e991d2fa116cdea847aa5d116d17dfd9c48c5202bedd19cdf7a70ec9281"
+  digest = "1:a451b3238d18a2e57bd2e8f1578386ce6fe34cfdc7297b697e3dc2420c6f910b"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -71,8 +71,8 @@
     "service/sts",
   ]
   pruneopts = "UT"
-  revision = "cae66ecf52e0171f937f1fa80e12130fbb652474"
-  version = "v1.16.9"
+  revision = "81f3829f5a9d041041bdf56e55926691309d7699"
+  version = "v1.16.26"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -91,12 +91,12 @@
   version = "v1.1.0"
 
 [[projects]]
-  digest = "1:b9914f85d95a0968bafd1be1908ba29e2eafafd88d6fd13696be42bf5368c380"
+  digest = "1:6b90c84e1800bd2d695b41ebc73a292641c481d1a61a7ec226db3c692885c26c"
   name = "github.com/go-chi/chi"
   packages = ["."]
   pruneopts = "UT"
-  revision = "b5294d10673813fac8558e7f47242bc9e61b4c25"
-  version = "v3.3.3"
+  revision = "08d9051ef6546d57c5dca8eae13e6df362e2d568"
+  version = "v3.3.4"
 
 [[projects]]
   digest = "1:b60efdeb75d3c0ceed88783ac2495256aba3491a537d0f31401202579fd62a94"
@@ -161,12 +161,12 @@
   version = "v1.11.0"
 
 [[projects]]
-  digest = "1:18752d0b95816a1b777505a97f71c7467a8445b8ffb55631a7bf779f6ba4fa83"
+  digest = "1:972c2427413d41a1e06ca4897e8528e5a1622894050e2f527b38ddf0f343f759"
   name = "github.com/stretchr/testify"
   packages = ["assert"]
   pruneopts = "UT"
-  revision = "f35b8ab0b5a2cef36673838d662e249dd9c94686"
-  version = "v1.2.2"
+  revision = "ffdc059bfe9ce6a4e144ba849dbedead332c6053"
+  version = "v1.3.0"
 
 [[projects]]
   branch = "master"
@@ -174,7 +174,7 @@
   name = "golang.org/x/net"
   packages = ["context"]
   pruneopts = "UT"
-  revision = "e147a9138326bc0e9d4e179541ffd8af41cff8a9"
+  revision = "d26f9f9a57f3fab6a695bec0d84433c2c50f8bbf"
 
 [[projects]]
   digest = "1:a2bfab4bf4324c6b55e559e5585ae267c961d009d8eb1ff7f60038b322907e75"
