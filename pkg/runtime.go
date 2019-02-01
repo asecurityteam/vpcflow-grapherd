@@ -95,7 +95,10 @@ func (s *Service) init() error {
 	}
 	if s.Storage == nil {
 		progressTimeoutStr := mustEnv("GRAPH_PROGRESS_TIMEOUT")
-		progressTimeoutInt, _ := strconv.Atoi(progressTimeoutStr)
+		progressTimeoutInt, err := strconv.Atoi(progressTimeoutStr)
+		if err != nil {
+			return err
+		}
 		s.Storage = &storage.InProgress{
 			Bucket: mustEnv("GRAPH_PROGRESS_BUCKET"),
 			Client: progressClient,
