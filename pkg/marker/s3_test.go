@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -22,10 +23,11 @@ func TestMarkInProgress(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	date := time.Date(1999, time.January, 1, 1, 0, 0, 0, time.UTC)
 	expectedInput := &s3manager.UploadInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(key + "_in_progress"),
-		Body:   bytes.NewReader([]byte("")),
+		Body:   bytes.NewReader([]byte(date.Format(time.RFC3339Nano))),
 	}
 
 	mockUploader := NewMockUploaderAPI(ctrl)
@@ -34,6 +36,7 @@ func TestMarkInProgress(t *testing.T) {
 	m := &ProgressMarker{
 		Bucket:   bucket,
 		uploader: mockUploader,
+		now:      func() time.Time { return date },
 	}
 
 	m.once.Do(func() {}) // trigger once call
@@ -46,10 +49,11 @@ func TestMarkInProgressError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	date := time.Date(1999, time.January, 1, 1, 0, 0, 0, time.UTC)
 	expectedInput := &s3manager.UploadInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(key + "_in_progress"),
-		Body:   bytes.NewReader([]byte("")),
+		Body:   bytes.NewReader([]byte(date.Format(time.RFC3339Nano))),
 	}
 
 	mockUploader := NewMockUploaderAPI(ctrl)
@@ -58,6 +62,7 @@ func TestMarkInProgressError(t *testing.T) {
 	m := &ProgressMarker{
 		Bucket:   bucket,
 		uploader: mockUploader,
+		now:      func() time.Time { return date },
 	}
 
 	m.once.Do(func() {}) // trigger once call
