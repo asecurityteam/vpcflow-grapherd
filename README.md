@@ -4,69 +4,69 @@
 
 ## Overview ##
 
-AWS VPC Flow Logs are a data source by which a team can detect anomalies in connection patterns, use of non-standard ports, 
-or even view the interconnections of systems. To assist in the consumption and analysis of these logs, vpcflow-grapherd 
+AWS VPC Flow Logs are a data source by which a team can detect anomalies in connection patterns, use of non-standard ports,
+or even view the interconnections of systems. To assist in the consumption and analysis of these logs, vpcflow-grapherd
 provides APIs for fetching digested versions of AWS VPC flow logs, and converting the digested log to a DOT graph.
 
 A digests is defined by a window of time specified in the `start` and `stop` REST API query parameters. See [vpcflow-digesterd]( https://bitbucket.org/atlassian/vpcflow-digesterd/src) for more information.
 
-This project has two major components: an API to create and fetch graphs, and a worker which performs the work for creating the digest, and converting the flow logs to a DOT graph. 
+This project has two major components: an API to create and fetch graphs, and a worker which performs the work for creating the digest, and converting the flow logs to a DOT graph.
 This allows for multiple setups depending on your use case. For example, for the simplest setup, this project can run as a standalone
 service if `STREAM_APPLIANCE_ENDPOINT` is set to `127.0.0.1:<PORT>`. Another, more asynchronous setup would involve running vpcflow-grapherd
 as two services, with the API component producing to some event bus, and configuring the event bus to POST into the worker component.
 
 ## Modules ##
 
-The service struct in the grapherd package contains the modules used by this application. If none of these modules are configured, 
+The service struct in the grapherd package contains the modules used by this application. If none of these modules are configured,
 the built-in modules will be used.
 
 ```
 func main() {
 	...
-	
+
 	// Service created with default modules
 	service := &grapherd.Service{
 		Middleware: middleware,
 	}
-	
+
 	...
-} 
+}
 ```
 
 ### Storage ###
 
-This module is responsible for storing and retrieving the DOT graphs. The built-in storage module uses S3 as the store and 
-can be configured with the `GRAPH_STORAGE_BUCKET` and `GRAPH_STORAGE_BUCKET_REGION` environment variables. To use a custom storage 
+This module is responsible for storing and retrieving the DOT graphs. The built-in storage module uses S3 as the store and
+can be configured with the `GRAPH_STORAGE_BUCKET` and `GRAPH_STORAGE_BUCKET_REGION` environment variables. To use a custom storage
 module, implement the `types.Storage` interface and set the Storage attribute on the `grapherd.Service` struct in your `main.go`.
 
 ### Marker ###
 
-As previously described, the project components can be configured to run asynchronously. The Marker module is used to mark when a 
+As previously described, the project components can be configured to run asynchronously. The Marker module is used to mark when a
 graph is in progess of being created and when a graph is complete. The built-in Marker uses S3 as its backend and can be configured
-with the `GRAPH_PROGRESS_BUCKET` and `GRAPH_PROGRESS_BUCKET_REGION` environment variables. To use a custom marker module, implement 
+with the `GRAPH_PROGRESS_BUCKET` and `GRAPH_PROGRESS_BUCKET_REGION` environment variables. To use a custom marker module, implement
 the `types.Marker` interface and set the Marker attribute on the `digesterd.Service` struct in your `main.go`.
 
 ### Queuer ###
 
 This module is responsible for queuing grapher jobs which will eventually be consumed by the Produce handler. The built-in Queuer POSTs
-to an HTTP endpoint. It can be configured with the `STREAM_APPLIANCE_ENDPOINT` environment variable. This 
-project can be configured to run asynchronously if the queuer POSTs to some event bus and returns immdetiately, so long as a 200 response 
-from that event bus indicates that the graph job will eventually be POSTed to the worker component of the project. To use a custom queuer 
+to an HTTP endpoint. It can be configured with the `STREAM_APPLIANCE_ENDPOINT` environment variable. This
+project can be configured to run asynchronously if the queuer POSTs to some event bus and returns immdetiately, so long as a 200 response
+from that event bus indicates that the graph job will eventually be POSTed to the worker component of the project. To use a custom queuer
 module, implement the `types.Queuer` interface and set the Queuer attribute on the `grapherd.Service` struct in your `main.go`.
 
 ### Digester ###
 
-This module is responsible for creating and fetching VPC Flow Log digests. The built-in Digester can 
+This module is responsible for creating and fetching VPC Flow Log digests. The built-in Digester can
 be configured by configuring `DIGESTER_ENDPOINT` to point to a running intance of [vpcflow-digesterd]( https://bitbucket.org/atlassian/vpcflow-digesterd/src).
-It will create the digest and poll the digester on an interval specified by `DIGESTER_POLLING_INTERVAL`, 
-and will continue to poll until `DIGESTER_POLLING_TIMEOUT` is reached. 
+It will create the digest and poll the digester on an interval specified by `DIGESTER_POLLING_INTERVAL`,
+and will continue to poll until `DIGESTER_POLLING_TIMEOUT` is reached.
 
 ### HTTP Clients ###
 
-There are two clients used in this project. One is the client to be used with the default Queuer module. 
-The other is used with the default Digester module. If no clients are provided, a default will be used. 
-This project makes use of the [transport](https://bitbucket.org/atlassian/transport) library which provides 
-a thin layer of configuration on top of the `http.Client` from the standard lib. While the HTTP client that 
+There are two clients used in this project. One is the client to be used with the default Queuer module.
+The other is used with the default Digester module. If no clients are provided, a default will be used.
+This project makes use of the [transport](https://bitbucket.org/atlassian/transport) library which provides
+a thin layer of configuration on top of the `http.Client` from the standard lib. While the HTTP client that
 is built-in to this project will be sufficient for most uses cases, a custom one can be
 provided by setting the QueuerHTTPClient and DigesterHTTPClient attributes on the `grapherd.Service` struct in your `main.go`.
 
@@ -116,6 +116,7 @@ Exit signals in this project are used to signal the service to perform a gracefu
 | GRAPH\_STORAGE\_BUCKET\_REGION       |    Yes   | The region of the S3 bucket used to store graphs                                                                                 | us-west-2                                |
 | GRAPH\_PROGRESS\_BUCKET      |    Yes   | The name of the S3 bucket used to store graph progress states                                                                  | vpc-flow-digests-progress                       |
 | GRAPH\_PROGRESS\_BUCKET\_REGION      |    Yes   | The region of the S3 bucket used to store graph progress states            | us-west-2                       |
+| GRAPH\_PROGRESS\_TIMEOUT               |    Yes   | The duration after which a progress marker will be considered invalid.			| 10000
 | DIGESTER\_ENDPOINT               |    Yes   | Endpoint to vpcflow-digesterd api                                                                                     | http://ec2-digesterd.us-west-2.compute.amazonaws.com                                            |
 | DIGESTER\_POLLING\_INTERVAL               |    Yes   | Amount of time to wait in between poll attempts in milliseconds                                                                                     | 1000                                            |
 | DIGESTER\_POLLING\_TIMEOUT               |    Yes   | Amount of total time to continue polling the digester in milliseconds. If you wish to poll indefinitely, set to -1.                                                                      | 10000                                            |
