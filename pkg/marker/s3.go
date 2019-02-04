@@ -15,7 +15,7 @@ import (
 
 const inProgressSuffix = "_in_progress"
 
-// ProgressMarker is an implementation of Marker which allows for marking/unmarking of diffs in progress
+// ProgressMarker is an implementation of Marker which allows for marking/unmarking of graphs in progress
 type ProgressMarker struct {
 	Bucket   string
 	Client   s3iface.S3API
@@ -41,7 +41,7 @@ func (m *ProgressMarker) Mark(ctx context.Context, key string) error {
 	return err
 }
 
-// Unmark flags the diff identified by key as not being "in progress"
+// Unmark flags the graph identified by key as not being "in progress"
 func (m *ProgressMarker) Unmark(ctx context.Context, key string) error {
 	_, err := m.Client.DeleteObjectWithContext(ctx, &s3.DeleteObjectInput{
 		Bucket: aws.String(m.Bucket),
