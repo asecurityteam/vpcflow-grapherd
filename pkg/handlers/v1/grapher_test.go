@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"bitbucket.org/atlassian/logevent"
-	"bitbucket.org/atlassian/vpcflow-grapherd/pkg/types"
+	"github.com/asecurityteam/logevent"
+	"github.com/asecurityteam/vpcflow-grapherd/pkg/types"
 	"github.com/golang/mock/gomock"
 	"github.com/rs/xstats"
 	"github.com/stretchr/testify/assert"

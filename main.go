@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"os"
 
-	"bitbucket.org/atlassian/vpcflow-grapherd/pkg"
-	"bitbucket.org/atlassian/vpcflow-grapherd/pkg/plugins"
-	"bitbucket.org/atlassian/vpcflow-grapherd/pkg/types"
+	"github.com/asecurityteam/vpcflow-grapherd/pkg"
+	"github.com/asecurityteam/vpcflow-grapherd/pkg/plugins"
+	"github.com/asecurityteam/vpcflow-grapherd/pkg/types"
 	"github.com/go-chi/chi"
 )
 

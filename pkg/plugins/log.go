@@ -4,8 +4,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"bitbucket.org/atlassian/logevent"
-	hlog "bitbucket.org/atlassian/logevent/http"
+	"github.com/asecurityteam/logevent"
+	hlog "github.com/asecurityteam/logevent/http"
 )
 
 // DefaultLogMiddleware injects the default logger on each incoming request's context

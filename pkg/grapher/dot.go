@@ -4,8 +4,8 @@ import (
 	"context"
 	"io"
 
-	"bitbucket.org/atlassian/go-vpcflow"
-	"bitbucket.org/atlassian/vpcflow-grapherd/pkg/types"
+	"github.com/asecurityteam/go-vpcflow"
+	"github.com/asecurityteam/vpcflow-grapherd/pkg/types"
 )
 
 // DOT is a grapher module which converts a VPC flow log digest into a DOT graph using the go-vpc library.

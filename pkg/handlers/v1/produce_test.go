@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"bitbucket.org/atlassian/logevent"
+	"github.com/asecurityteam/logevent"
 	"github.com/golang/mock/gomock"
 	"github.com/rs/xstats"
 	"github.com/stretchr/testify/assert"

@@ -3,33 +3,33 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c4a88f2c15c14553320639d68c94291487303d72ecec9d1454e4468b665f2d42"
-  name = "bitbucket.org/atlassian/go-vpcflow"
+  digest = "1:79c34accc5cec9887d5e4011f4d47ee39c0946857bccf7d6f85332d0d6d7c1b3"
+  name = "github.com/asecurityteam/go-vpcflow"
   packages = ["."]
   pruneopts = "UT"
-  revision = "5d1ae1604a53fdec51f88776000eb0e0e7f154ac"
+  revision = "9f5af3b12acf9566e150408437e48fb3282b1923"
 
 [[projects]]
-  digest = "1:fc7ac93c8a978bd4ccbe0c85fdca0e7723d72be1f76feb2b162b970ae6276aa2"
-  name = "bitbucket.org/atlassian/logevent"
+  digest = "1:ffadaa3e19072a02b4727002937b7a677973f2eed0a89b4a8c750576339bbaa5"
+  name = "github.com/asecurityteam/logevent"
   packages = [
     ".",
     "http",
   ]
   pruneopts = "UT"
-  revision = "675fa127247ec5f96142b7c71d5bd7d04b730a4f"
-  version = "1.0.2"
+  revision = "b32737d8d51c86c030b126ef9028cb2bab259aa1"
+  version = "1.0.4"
 
 [[projects]]
-  digest = "1:971024ef1a764461d2cb20cf5a115fa6f72a3982f3499ff28d9b8e83ba337159"
-  name = "bitbucket.org/atlassian/transport"
+  digest = "1:067d27a5520b7ab98a652f32b33785de2ffc7028e50c722c993e7ee218046a30"
+  name = "github.com/asecurityteam/transport"
   packages = ["."]
   pruneopts = "UT"
-  revision = "09aeb930fafb2a2bd96b500adf4981d23844b6d1"
-  version = "1.1.1"
+  revision = "b848ebf618ee2a8131b88126469b693aa035457f"
+  version = "1.1.2"
 
 [[projects]]
-  digest = "1:a451b3238d18a2e57bd2e8f1578386ce6fe34cfdc7297b697e3dc2420c6f910b"
+  digest = "1:888f2eafc1ffa47557eb8f18a93914bd841592723a8450b269a1e026cc39469a"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -71,8 +71,8 @@
     "service/sts",
   ]
   pruneopts = "UT"
-  revision = "81f3829f5a9d041041bdf56e55926691309d7699"
-  version = "v1.16.26"
+  revision = "e8b22c9937cae1fee9bc364a88f3752cc4d1ac2f"
+  version = "v1.17.4"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -174,7 +174,7 @@
   name = "golang.org/x/net"
   packages = ["context"]
   pruneopts = "UT"
-  revision = "d26f9f9a57f3fab6a695bec0d84433c2c50f8bbf"
+  revision = "fe579d43d83210096a79b46dcca0e3721058393a"
 
 [[projects]]
   digest = "1:a2bfab4bf4324c6b55e559e5585ae267c961d009d8eb1ff7f60038b322907e75"
@@ -187,10 +187,10 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "bitbucket.org/atlassian/go-vpcflow",
-    "bitbucket.org/atlassian/logevent",
-    "bitbucket.org/atlassian/logevent/http",
-    "bitbucket.org/atlassian/transport",
+    "github.com/asecurityteam/go-vpcflow",
+    "github.com/asecurityteam/logevent",
+    "github.com/asecurityteam/logevent/http",
+    "github.com/asecurityteam/transport",
     "github.com/aws/aws-sdk-go/aws",
     "github.com/aws/aws-sdk-go/aws/awserr",
     "github.com/aws/aws-sdk-go/aws/credentials",
