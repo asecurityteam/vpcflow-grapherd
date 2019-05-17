@@ -17,8 +17,8 @@ var graphNamespace = uuid.NewSHA1(uuid.Nil, []byte("graph"))
 
 // GrapherHandler handles incoming HTTP requests for creating and retrieving new graphs
 type GrapherHandler struct {
-	LogProvider  types.LoggerProvider
-	StatProvider types.StatsProvider
+	LogProvider  types.LogFn
+	StatProvider types.StatFn
 	Storage      types.Storage
 	Marker       types.Marker
 	Queuer       types.Queuer
