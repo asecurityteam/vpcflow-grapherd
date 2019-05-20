@@ -34,7 +34,7 @@ A digests is defined by a window of time specified in the `start` and `stop` RES
 
 This project has two major components: an API to create and fetch graphs, and a worker which performs the work for creating the digest, and converting the flow logs to a DOT graph.
 This allows for multiple setups depending on your use case. For example, for the simplest setup, this project can run as a standalone
-service if `STREAM_APPLIANCE_ENDPOINT` is set to `127.0.0.1:<PORT>`. Another, more asynchronous setup would involve running vpcflow-grapherd
+service if `STREAM_APPLIANCE_ENDPOINT` is set to `<RUNTIME_HTTPSERVER_ADDRESS>`. Another, more asynchronous setup would involve running vpcflow-grapherd
 as two services, with the API component producing to some event bus, and configuring the event bus to POST into the worker component.
 
 <a id="markdown-modules" name="modules"></a>
@@ -102,36 +102,23 @@ provided by setting the QueuerHTTPClient and DigesterHTTPClient attributes on th
 <a id="markdown-logging" name="logging"></a>
 ### Logging ###
 
-This project uses [logevent](https://github.com/asecurityteam/logevent) as its logging interface. Structured logs that this project emits
-can be found in the `logs` package. This project comes with a couple of default logging implementations that can be found in the plugins
-package. These loggers are injected via HTTP middleware on the request context.
-
-```
-func main() {
-	router := chi.NewRouter()
-	middleware := []func(http.Handler) http.Handler{
-		plugins.DefaultLogMiddleware(), // injects a logger which sends to os.Stdout
-	}
-	service := &grapherd.Service{Middleware: middleware}
-	if err := service.BindRoutes(router); err != nil {
-		panic(err.Error())
-	}
-}
-```
-Please note that this project will not run without some sort of logger being installed. While it's not recommended, if you wish to omit
-logging, use the `NopLogMiddleware`.
+This project uses [runhttp's Logger](https://github.com/asecurityteam/runhttp/blob/master/domain.go#L13) as its logging
+interface. Structured logs that this project emits can be found in the `logs` package. The runhttp runtime injects
+loggers via HTTP middleware on the request context.
 
 <a id="markdown-stats" name="stats"></a>
 ### Stats ###
 
-This project uses [xstats](https://github.com/rs/xstats) as the stats client. It supports a decent range of backends. The default stats
-backend for the project is statsd using the datadog tagging extensions. The default backend will send stats to "localhost:8126". To change
-the destination or the backend install the `CustomStatMiddleware` with your own xstats client.
+This project uses [runhttp's Stat](https://github.com/asecurityteam/runhttp/blob/master/domain.go#L25) as the stats
+client. It supports a decent range of backends. The default stats backend for the project is statsd using the datadog
+tagging extensions. The default backend will send stats to "localhost:8125". To change the destination, modify the
+`RUNTIME_STATS_OUTPUT` environment variable.
 
 <a id="markdown-exitsignals" name="exitsignals"></a>
 ### ExitSignals ###
 
-Exit signals in this project are used to signal the service to perform a graceful shutdown. The built-in exit signal listens for SIGTERM and SIGINT and signals to the main routine to shutdown the service.
+Exit signals in this project are used to signal the service to perform a graceful shutdown. The built-in exit signal
+listens for SIGTERM and SIGINT and signals to the main routine to shutdown the service.
 
 <a id="markdown-setup" name="setup"></a>
 ## Setup ##
@@ -141,24 +128,42 @@ Exit signals in this project are used to signal the service to perform a gracefu
 * create a bucket in AWS to store progress states for queued graphs
 * setup environment variables
 
-| Name                        | Required | Description                                                                                                                     | Example                                         |
-|-----------------------------|:--------:|---------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------|
-| PORT                        |    No   | HTTP Port for application (defaults to 8080)                                                                                     | 8080                                            |
-| GRAPH\_STORAGE\_BUCKET       |    Yes   | The name of the S3 bucket used to store graphs                                                                                 | vpc-flow-digests                                |
-| GRAPH\_STORAGE\_BUCKET\_REGION       |    Yes   | The region of the S3 bucket used to store graphs                                                                                 | us-west-2                                |
-| GRAPH\_PROGRESS\_BUCKET      |    Yes   | The name of the S3 bucket used to store graph progress states                                                                  | vpc-flow-digests-progress                       |
-| GRAPH\_PROGRESS\_BUCKET\_REGION      |    Yes   | The region of the S3 bucket used to store graph progress states            | us-west-2                       |
-| GRAPH\_PROGRESS\_TIMEOUT               |    Yes   | The duration after which a progress marker will be considered invalid.			| 10000
-| DIGESTER\_ENDPOINT               |    Yes   | Endpoint to vpcflow-digesterd api                                                                                     | http://ec2-digesterd.us-west-2.compute.amazonaws.com                                            |
-| DIGESTER\_POLLING\_INTERVAL               |    Yes   | Amount of time to wait in between poll attempts in milliseconds                                                                                     | 1000                                            |
-| DIGESTER\_POLLING\_TIMEOUT               |    Yes   | Amount of total time to continue polling the digester in milliseconds. If you wish to poll indefinitely, set to -1.                                                                      | 10000                                            |
-| STREAM\_APPLIANCE\_ENDPOINT   |    Yes   | Endpoint for the service which queues graphs to be created. | http://ec2-event-bus.us-west-2.compute.amazonaws.com |
-| USE\_IAM                     |    Yes   | true or false. Set this flag to true if your application will be assuming an IAM role to read and write to the S3 buckets. This is recommended if you are deploying your application to an ec2 instance.       | true                                            |
-| AWS\_CREDENTIALS\_FILE        |    No    | If not using IAM, use this to specify a credential file                                                                         | ~/.aws/credentials                              |
-| AWS\_CREDENTIALS\_PROFILE     |    No    | If not using IAM, use this to specify the credentials profile to use                                                            | default                                         |
-| AWS\_ACCESS\_KEY\_ID           |    No    | If not using IAM, use this to specify an AWS access key ID                                                                      |                                                 |
-| AWS\_SECRET\_ACCESS\_KEY       |    No    | If not using IAM, use this to specify an AWS secret key                                                                         |                                                 |
-
+| Name                                | Required | Description                                                                                                                                                                                              | Example                                              |
+|-------------------------------------|:--------:|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------|
+| PORT                                |    No    | HTTP Port for application (defaults to 8080)                                                                                                                                                             | 8080                                                 |
+| GRAPH\_STORAGE\_BUCKET              |   Yes    | The name of the S3 bucket used to store graphs                                                                                                                                                           | vpc-flow-digests                                     |
+| GRAPH\_STORAGE\_BUCKET\_REGION      |   Yes    | The region of the S3 bucket used to store graphs                                                                                                                                                         | us-west-2                                            |
+| GRAPH\_PROGRESS\_BUCKET             |   Yes    | The name of the S3 bucket used to store graph progress states                                                                                                                                            | vpc-flow-digests-progress                            |
+| GRAPH\_PROGRESS\_BUCKET\_REGION     |   Yes    | The region of the S3 bucket used to store graph progress states                                                                                                                                          | us-west-2                                            |
+| GRAPH\_PROGRESS\_TIMEOUT            |   Yes    | The duration after which a progress marker will be considered invalid.                                                                                                                                   | 10000                                                |
+| DIGESTER\_ENDPOINT                  |   Yes    | Endpoint to vpcflow-digesterd api                                                                                                                                                                        | http://ec2-digesterd.us-west-2.compute.amazonaws.com |
+| DIGESTER\_POLLING\_INTERVAL         |   Yes    | Amount of time to wait in between poll attempts in milliseconds                                                                                                                                          | 1000                                                 |
+| DIGESTER\_POLLING\_TIMEOUT          |   Yes    | Amount of total time to continue polling the digester in milliseconds. If you wish to poll indefinitely, set to -1.                                                                                      | 10000                                                |
+| STREAM\_APPLIANCE\_ENDPOINT         |   Yes    | Endpoint for the service which queues graphs to be created.                                                                                                                                              | http://ec2-event-bus.us-west-2.compute.amazonaws.com |
+| USE\_IAM                            |   Yes    | true or false. Set this flag to true if your application will be assuming an IAM role to read and write to the S3 buckets. This is recommended if you are deploying your application to an ec2 instance. | true                                                 |
+| AWS\_CREDENTIALS\_FILE              |    No    | If not using IAM, use this to specify a credential file                                                                                                                                                  | ~/.aws/credentials                                   |
+| AWS\_CREDENTIALS\_PROFILE           |    No    | If not using IAM, use this to specify the credentials profile to use                                                                                                                                     | default                                              |
+| AWS\_ACCESS\_KEY\_ID                |    No    | If not using IAM, use this to specify an AWS access key ID                                                                                                                                               |                                                      |
+| AWS\_SECRET\_ACCESS\_KEY            |    No    | If not using IAM, use this to specify an AWS secret key                                                                                                                                                  |                                                      |
+| RUNTIME_HTTPSERVER_ADDRESS          |   Yes    | (string) The listening address of the server.                                                                                                                                                            | :8080                                                |
+| RUNTIME_CONNSTATE_REPORTINTERVAL    |   YES    | (time.Duration) Interval on which gauges are reported.                                                                                                                                                   | 5s                                                   |
+| RUNTIME_CONNSTATE_HIJACKEDCOUNTER   |   YES    | (string) Name of the counter metric tracking hijacked clients.                                                                                                                                           | http.server.connstate.hijacked                       |
+| RUNTIME_CONNSTATE_CLOSEDCOUNTER     |   YES    | (string) Name of the counter metric tracking closed clients.                                                                                                                                             | http.server.connstate.closed                         |
+| RUNTIME_CONNSTATE_IDLEGAUGE         |   YES    | (string) Name of the gauge metric tracking idle clients.                                                                                                                                                 | http.server.connstate.idle.gauge                     |
+| RUNTIME_CONNSTATE_IDLECOUNTER       |   YES    | (string) Name of the counter metric tracking idle clients.                                                                                                                                               | http.server.connstate.idle                           |
+| RUNTIME_CONNSTATE_ACTIVEGAUGE       |   YES    | string) Name of the gauge metric tracking active clients.                                                                                                                                                | http.server.connstate.active.gauge                   |
+| RUNTIME_CONNSTATE_ACTIVECOUNTER     |   YES    | (string) Name of the counter metric tracking active clients.                                                                                                                                             | http.server.connstate.active                         |
+| RUNTIME_CONNSTATE_NEWGAUGE          |   YES    | (string) Name of the gauge metric tracking new clients.                                                                                                                                                  | http.server.connstate.new.gauge                      |
+| RUNTIME_CONNSTATE_NEWCOUNTER        |   YES    | (string) Name of the counter metric tracking new clients.                                                                                                                                                | http.server.connstate.new                            |
+| RUNTIME_LOGGER_OUTPUT               |   YES    | (string) Destination stream of the logs. One of STDOUT, NULL.                                                                                                                                            | STDOUT                                               |
+| RUNTIME_LOGGER_LEVEL                |   YES    | (string) The minimum level of logs to emit. One of DEBUG, INFO, WARN, ERROR.                                                                                                                             | INFO                                                 |
+| RUNTIME_STATS_OUTPUT                |   YES    | (string) Destination stream of the stats. One of NULLSTAT, DATADOG.                                                                                                                                      | DATADOG                                              |
+| RUNTIME_STATS_DATADOG_PACKETSIZE    |   YES    | (int) Max packet size to send.                                                                                                                                                                           | 32768                                                |
+| RUNTIME_STATS_DATADOG_TAGS          |   YES    | ([]string) Any static tags for all metrics.                                                                                                                                                              | ""                                                   |
+| RUNTIME_STATS_DATADOG_FLUSHINTERVAL |   YES    | (time.Duration) Frequencing of sending metrics to listener.                                                                                                                                              | 10s                                                  |
+| RUNTIME_STATS_DATADOG_ADDRESS       |   YES    | (string) Listener address to use when sending metrics.                                                                                                                                                   | localhost:8125                                       |
+| RUNTIME_SIGNALS_INSTALLED           |   YES    | ([]string) Which signal handlers are installed. Choices are OS.                                                                                                                                          | OS                                                   |
+| RUNTIME_SIGNALS_OS_SIGNALS          |   YES    | ([]int) Which signals to listen for.                                                                                                                                                                     | 15 2                                                 |
 
 
 

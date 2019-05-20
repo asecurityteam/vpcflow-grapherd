@@ -17,8 +17,8 @@ type payload struct {
 
 // Produce is a handler which performs the digest job, and stores the digest
 type Produce struct {
-	LogProvider  types.LoggerProvider
-	StatProvider types.StatsProvider
+	LogProvider  types.LogFn
+	StatProvider types.StatFn
 	Marker       types.Marker
 	Digester     types.Digester
 	Grapher      types.Grapher

@@ -1,7 +1,6 @@
 package grapherd
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -10,11 +9,10 @@ import (
 	"time"
 
 	"github.com/asecurityteam/go-vpcflow"
-	"github.com/asecurityteam/logevent"
 	"github.com/asecurityteam/transport"
 	"github.com/asecurityteam/vpcflow-grapherd/pkg/digester"
 	"github.com/asecurityteam/vpcflow-grapherd/pkg/grapher"
-	"github.com/asecurityteam/vpcflow-grapherd/pkg/handlers/v1"
+	v1 "github.com/asecurityteam/vpcflow-grapherd/pkg/handlers/v1"
 	"github.com/asecurityteam/vpcflow-grapherd/pkg/marker"
 	"github.com/asecurityteam/vpcflow-grapherd/pkg/queuer"
 	"github.com/asecurityteam/vpcflow-grapherd/pkg/storage"
@@ -24,18 +22,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/go-chi/chi"
-	"github.com/rs/xstats"
 )
-
-// Server is an interface for starting/stopping an HTTP server
-type Server interface {
-	// ListenAndServe starts the HTTP server in a blocking call.
-	ListenAndServe() error
-	// Shutdown stops the server from accepting new connections.
-	// If the given context expires before shutdown is complete then
-	// the context error is returned.
-	Shutdown(ctx context.Context) error
-}
 
 // Service is a container for all of the pluggable modules used by the service
 type Service struct {
@@ -48,7 +35,6 @@ type Service struct {
 	DigesterHTTPClient *http.Client
 
 	// Middleware is a list of service middleware to install on the router.
-	// The set of prepackaged middleware can be found in pkg/plugins.
 	Middleware []func(http.Handler) http.Handler
 
 	// Queuer is responsible for queuing graphing jobs which will eventually be consumed
@@ -150,15 +136,15 @@ func (s *Service) BindRoutes(router chi.Router) error {
 		return err
 	}
 	grapherHandler := &v1.GrapherHandler{
-		LogProvider:  logevent.FromContext,
-		StatProvider: xstats.FromContext,
+		LogProvider:  types.LoggerFromContext,
+		StatProvider: types.StatFromContext,
 		Queuer:       s.Queuer,
 		Storage:      s.Storage,
 		Marker:       s.Marker,
 	}
 	produceHandler := &v1.Produce{
-		LogProvider:  logevent.FromContext,
-		StatProvider: xstats.FromContext,
+		LogProvider:  types.LoggerFromContext,
+		StatProvider: types.StatFromContext,
 		Digester:     s.Digester,
 		Marker:       s.Marker,
 		Grapher: &grapher.DOT{
@@ -171,35 +157,6 @@ func (s *Service) BindRoutes(router chi.Router) error {
 	router.Get("/", grapherHandler.Get)
 	router.Post("/{topic}/{event}", produceHandler.ServeHTTP)
 	return nil
-}
-
-// Runtime is the app configuration and execution point
-type Runtime struct {
-	Server      Server
-	ExitSignals []types.ExitSignal
-}
-
-// Run runs the application
-func (r *Runtime) Run() error {
-	exit := make(chan error)
-
-	for _, f := range r.ExitSignals {
-		go func(f func() chan error) {
-			exit <- <-f()
-		}(f)
-	}
-
-	go func() {
-		exit <- r.Server.ListenAndServe()
-	}()
-
-	err := <-exit
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	_ = r.Server.Shutdown(ctx)
-
-	return err
 }
 
 func mustEnv(key string) string {
