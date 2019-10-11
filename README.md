@@ -1,6 +1,8 @@
 <a id="markdown-vpcflow-grapherd---a-service-which-converts-aws-vpc-flow-log-digests-into-dot-graphs" name="vpcflow-grapherd---a-service-which-converts-aws-vpc-flow-log-digests-into-dot-graphs"></a>
 # vpcflow-grapherd - A service which converts AWS VPC flow log digests into DOT graphs #
 [![GoDoc](https://godoc.org/github.com/asecurityteam/vpcflow-grapherd?status.svg)](https://godoc.org/github.com/asecurityteam/vpcflow-grapherd)
+[![Build Status](https://travis-ci.com/asecurityteam/vpcflow-grapherd.png?branch=master)](https://travis-ci.com/asecurityteam/vpcflow-grapherd)
+[![codecov.io](https://codecov.io/github/asecurityteam/vpcflow-grapherd/coverage.svg?branch=master)](https://codecov.io/github/asecurityteam/vpcflow-grapherd?branch=master)
 
 *Status: Incubation*
 
